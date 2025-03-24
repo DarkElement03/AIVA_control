@@ -1,0 +1,5 @@
+c:\Users\hp\Documents\Projects\AIVA_control\obj\Debug\net6.0\SpaceEngineers.csproj.AssemblyReference.cache
+c:\Users\hp\Documents\Projects\AIVA_control\obj\Debug\net6.0\SpaceEngineers.GeneratedMSBuildEditorConfig.editorconfig
+c:\Users\hp\Documents\Projects\AIVA_control\obj\Debug\net6.0\SpaceEngineers.AssemblyInfoInputs.cache
+c:\Users\hp\Documents\Projects\AIVA_control\obj\Debug\net6.0\SpaceEngineers.AssemblyInfo.cs
+c:\Users\hp\Documents\Projects\AIVA_control\obj\Debug\net6.0\SpaceEngineers.csproj.CoreCompileInputs.cache
