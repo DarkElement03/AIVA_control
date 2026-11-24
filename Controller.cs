@@ -32,14 +32,15 @@ namespace SpaceEngineers.UWBlockPrograms.SampleMainNs
         #endregion
         
         //space engineers script to monitor the status of a ship and send command to main.cs to play sound
-        Queue<string> queue;
         int cycles;
-        string command;
+        string[] command;
         IMyBlockGroup group;
         IMyProgrammableBlock AIVA;
+        IMyTimerBlock WSRdy;
         IMyCockpit mainCockpit;
         List<IMyDoor> doors;
         List<IMyInteriorLight> lights;
+        List<IMyThrust> Athrusters;
         IMyJumpDrive Jump;
         IMyGridJumpDriveSystem JumpSys;
 
@@ -50,19 +51,23 @@ namespace SpaceEngineers.UWBlockPrograms.SampleMainNs
             // timer block.
             Runtime.UpdateFrequency = UpdateFrequency.Update100;
             AIVA = (IMyProgrammableBlock)GridTerminalSystem.GetBlockWithName("Automaton Programmable Block AIVA");
+
+            WSRdy = (IMyTimerBlock)GridTerminalSystem.GetBlockWithName("Automaton Timer Block WSRdy");
+
             group = GridTerminalSystem.GetBlockGroupWithName("Doors");
             group.GetBlocksOfType(doors);
+
             group = GridTerminalSystem.GetBlockGroupWithName("Lights");
             group.GetBlocksOfType(lights);
+
             Jump = (IMyJumpDrive)GridTerminalSystem.GetBlockWithName("Jump Drive");
             JumpSys = (IMyGridJumpDriveSystem)GridTerminalSystem.GetBlockWithName("Jump Drive");
-            Queue<string> queue = new Queue<string>();
             cycles = 3;//around 5 seconds
         }
 
         public void Save()
         {
-            /*(string)Storage = <something>;*/
+            Storage = command[1];
             // Called when the program needs to save its state. Use
             // this method to save your state to the Storage field
             // or some other means. 
@@ -78,52 +83,74 @@ namespace SpaceEngineers.UWBlockPrograms.SampleMainNs
 
         public void Main(string argument, UpdateType updateSource)
         {
-            command = queue.First();
-            switch (argument) {
-                case "EmergOn" : {
-                    AIVA.TryRun("EnemyDetected");
-                        Echo("1");
-                    delay(5);
-
-                    AIVA.TryRun("DoorsClosed");
-                        Echo("2");
-                    foreach(var door in doors)
+            if (argument == null)
+            Storage += argument + ',';
+            command = Storage.Split(';',2);
+            if (command.Length == 1) { command[1] = "\0"; }
+            switch (command[0]) {
+                case "EmergOn" :
                     {
-                        door.CloseDoor();
-                        door.Enabled=false;
+                        AIVA.TryRun("EnemyDetected");
+                        command[1] += "CloseDoor;LightsOff;WeapSysRdy;";
+                        break;
                     }
-                    delay(5);
+                case "CloseDoor":
+                    {
+                        AIVA.TryRun("DoorsClosed");
+                        foreach (var door in doors)
+                        {
+                            door.CloseDoor();
+                            door.Enabled = false;
+                        }
+                        break;
+                    }
+                case "LightsOff":
+                    {
 
-                    AIVA.TryRun("LightsOff");
-                        Echo("3");
-                    foreach(var light in lights){light.Enabled=false;}
-                    delay(5);
+                        AIVA.TryRun("LightsOff");
+                        foreach (var light in lights) { light.Enabled = false; }
+                        break;
+                    }
+                case "WeapSysRdy":
+                    {
+                        AIVA.TryRun("WeaponsSystemsReady");
+                        WSRdy.Trigg
+                        break;
+                    }
+                case "EmergOff" :
+                    {
+                        AIVA.TryRun("SystemsOnline");
+                        command[1] += "OpenDoor;LightsOn;";
+                        break;
+                    }
+                case "OpenDoor":
+                    {
+                        AIVA.TryRun("DoorsOpen");
+                        foreach (var door in doors) { door.Enabled = true; }
+                        break;
+                    }
+                case "lightsOn":
+                    {
+                        AIVA.TryRun("LightsOn");
+                        foreach(var light in lights){light.Enabled=true;}
+                        delay(5);
+                        break;
+                    }
+                case "Land":
+                    {
+                        AIVA.TryRun("");
+                        break;
+                    }
 
-                    AIVA.TryRun("WeaponsSystemsReady");
-                        Echo("4");
-                    break;
-                }
-                case "EmergOff" : {
-                    AIVA.TryRun("SystemsOnline");
-                    delay(5);
 
-                    AIVA.TryRun("DoorsOpen");
-                    foreach(var door in doors){door.Enabled=true;}
-                    delay(5);
-
-                    AIVA.TryRun("LightsOn");
-                    foreach(var light in lights){light.Enabled=true;}
-                    delay(5);
-                    break;
-                }
-                case "Jump" : {
+                /*case "Jump" : {
                     Vector3D vector = mainCockpit.WorldMatrix.GetDirectionVector(Base6Directions.Direction.Forward);
                     int max = ((int)Jump.MaxJumpDistanceMeters);
                     JumpSys.FindSuitableJumpLocation(vector);//maybe not needed?
                     JumpSys.Jump(vector,mainCockpit.OwnerId,0);
                     AIVA.ApplyAction("Warp");
                     break;
-                }
+                }*/
             }
         }
 
